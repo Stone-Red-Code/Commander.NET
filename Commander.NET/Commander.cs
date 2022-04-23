@@ -1,45 +1,6 @@
-﻿namespace Commander_Net;
+﻿using System.Text;
 
-public class Command
-{
-    internal string[] Identifiers { get; }
-
-    internal readonly Action<string> method;
-    internal readonly List<Command> subCommands = new();
-
-    public Command(Action<string> method, string[] identifiers)
-    {
-        this.method = method;
-        Identifiers = identifiers;
-    }
-
-    public Command Register(Action<string> method, params string[] identifiers)
-    {
-        Command command = new Command(method, identifiers);
-        subCommands.Add(command);
-        return command;
-    }
-
-    internal void Execute(string input)
-    {
-        string[] inputParts = input.Split(' ');
-        bool found = false;
-
-        foreach (Command? command in subCommands)
-        {
-            if (command.Identifiers.Contains(inputParts[0]))
-            {
-                command.Execute(string.Join(' ', inputParts.Skip(1)));
-                found = true;
-            }
-        }
-
-        if (!found)
-        {
-            method.Invoke(input);
-        }
-    }
-}
+namespace Commander_Net;
 
 public class Commander
 {
@@ -47,25 +8,89 @@ public class Commander
 
     public Command Register(Action<string> method, params string[] identifiers)
     {
-        Command command = new Command(method, identifiers);
+        return Register(method, new HelpText(), identifiers);
+    }
+
+    public Command Register(Func<string, CommandResult> method, params string[] identifiers)
+    {
+        return Register(method, new HelpText(), identifiers);
+    }
+
+    public Command Register(Action<string> method, HelpText description, params string[] identifiers)
+    {
+        Func<string, CommandResult> commandMethod = (input) =>
+        {
+            method(input);
+            return new CommandResult(ResultType.Success);
+        };
+
+        return Register(commandMethod, description, identifiers);
+    }
+
+    public Command Register(Func<string, CommandResult> method, HelpText description, params string[] identifiers)
+    {
+        Command command = new Command(method, description, identifiers);
+        Register(command);
+        return command;
+    }
+
+    public Command Register(Command command)
+    {
         commands.Add(command);
         return command;
     }
 
-    public bool Execute(string input)
+    public bool ExecuteMultible(string input, out List<CommandResult> commandResults)
     {
+        List<CommandResult> internalCommandResults = new List<CommandResult>();
         string[] inputParts = input.Split(' ');
         bool found = false;
-
-        foreach (Command? command in commands)
+        foreach (Command? command in commands.Where(command => command.Identifiers.Contains(inputParts[0])))
         {
-            if (command.Identifiers.Contains(inputParts[0]))
-            {
-                command.Execute(string.Join(' ', inputParts.Skip(1)));
-                found = true;
-            }
+            List<CommandResult> tempCommandResults = command.ExecuteMultible(string.Join(' ', inputParts.Skip(1)));
+            internalCommandResults.AddRange(tempCommandResults);
+            found = true;
         }
 
+        commandResults = internalCommandResults;
         return found;
+    }
+
+    public bool Execute(string input, out CommandResult? commandResult)
+    {
+        string[] inputParts = input.Split(' ');
+
+        Command? command = commands.FirstOrDefault(command => command.Identifiers.Contains(inputParts[0]));
+
+        if (command is null)
+        {
+            commandResult = null;
+            return false;
+        }
+
+        commandResult = command.Execute(string.Join(' ', inputParts.Skip(1)));
+        return true;
+    }
+
+    public bool GetHelp(string input, out string helpText)
+    {
+        string[] inputParts = input.Split(' ');
+
+        StringBuilder internalHelpText = new StringBuilder();
+
+        foreach (Command command in commands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
+        {
+            internalHelpText.AppendLine(command.GetHelp(string.Join(' ', inputParts.Skip(1))));
+        }
+
+        helpText = internalHelpText.ToString();
+        return !string.IsNullOrWhiteSpace(helpText);
+    }
+
+    public bool PrintHelp(string input)
+    {
+        bool result = GetHelp(input, out string helpText);
+        Console.WriteLine(helpText.TrimEnd('\n', '\r'));
+        return result;
     }
 }
