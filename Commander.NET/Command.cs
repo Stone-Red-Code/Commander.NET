@@ -36,11 +36,11 @@ public class Command
 
     public Command Register(Action<string> method, HelpText description, params string[] identifiers)
     {
-        Func<string, CommandResult> commandMethod = (input) =>
+        CommandResult commandMethod(string input)
         {
             method(input);
             return new CommandResult(ResultType.Success);
-        };
+        }
 
         return Register(commandMethod, description, identifiers);
     }
@@ -48,7 +48,7 @@ public class Command
     public Command Register(Func<string, CommandResult> method, HelpText description, params string[] identifiers)
     {
         Command command = new Command(method, description, identifiers);
-        Register(command);
+        _ = Register(command);
         return command;
     }
 
@@ -67,7 +67,7 @@ public class Command
 
         foreach (Command? command in subCommands.Where(command => command.Identifiers.Contains(inputParts[0])))
         {
-            command.ExecuteMultible(string.Join(' ', inputParts.Skip(1)), commandResults);
+            _ = command.ExecuteMultible(string.Join(' ', inputParts.Skip(1)), commandResults);
             found = true;
         }
 
@@ -78,9 +78,9 @@ public class Command
             {
                 result = Method(input);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                result = new CommandResult(ResultType.UnexpectedError);
+                result = new CommandResult(ResultType.UnexpectedError, ex.ToString());
             }
 
             commandResults.Add(result);
@@ -104,9 +104,9 @@ public class Command
         {
             return Method(input);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return new CommandResult(ResultType.UnexpectedError);
+            return new CommandResult(ResultType.UnexpectedError, ex.ToString());
         }
     }
 
@@ -118,7 +118,7 @@ public class Command
 
         foreach (Command command in subCommands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
         {
-            helpText.Append($"{Environment.NewLine}    {command.GetHelp(string.Join(' ', inputParts.Skip(1)))}");
+            _ = helpText.Append($"{Environment.NewLine}    {command.GetHelp(string.Join(' ', inputParts.Skip(1)))}");
         }
 
         return helpText.ToString();
