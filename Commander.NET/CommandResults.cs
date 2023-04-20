@@ -4,6 +4,6 @@ public enum ResultType
 {
     Success,
     InvalidInput,
-    InternalError,
+    Error,
     UnexpectedError
 }

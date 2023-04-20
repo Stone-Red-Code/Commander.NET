@@ -9,14 +9,13 @@ sayCommand.Register(HahaYesSub, "kek");
 commander.Register(HahaNo, "scream", "yell");
 commander.Register(Add, "add");
 commander.Register((args) => Console.Clear(), "clear");
-commander.Register((input) => commander.PrintHelp(input) ? CommandResult.Success : CommandResult.InvalidInput, "help");
+commander.Register((input) => commander.PrintHelp(input) ? CommandResult.Success() : CommandResult.InvalidInput(), "help");
 
-Command fancyCommand = commander.Register(_ => new CommandResult(ResultType.InvalidInput, "How about no?"), "fancy");
+Command fancyCommand = commander.Register(_ => CommandResult.InvalidInput("Nonono"), "fancy");
 fancyCommand.Register(new Command()
 {
     Identifiers = new string[] { "yes", "YES" },
     HelpText = "Says that the input is fancy",
-
     Method = (i) => { Console.WriteLine($"Yes, {i} is very fancy!"); return new CommandResult(ResultType.Success); }
 });
 
@@ -37,7 +36,7 @@ while (true)
             {
                 ResultType.Success => ConsoleColor.Green,
                 ResultType.InvalidInput => ConsoleColor.DarkYellow,
-                ResultType.InternalError => ConsoleColor.Red,
+                ResultType.Error => ConsoleColor.Red,
                 ResultType.UnexpectedError => ConsoleColor.DarkRed,
                 _ => ConsoleColor.Magenta
             };
@@ -53,7 +52,6 @@ while (true)
         Console.ResetColor();
 
         _ = commander.PrintHelp();
-
     }
     Console.WriteLine();
 }
@@ -88,5 +86,5 @@ CommandResult Add(string input)
         return new CommandResult(ResultType.InvalidInput, "Invalid input!");
     }
     Console.WriteLine(int.Parse(parts[0]) + int.Parse(parts[1]));
-    return CommandResult.Success;
+    return CommandResult.Success();
 }

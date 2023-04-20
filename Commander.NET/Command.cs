@@ -21,7 +21,7 @@ public class Command
     {
         Identifiers = Array.Empty<string>();
         HelpText = string.Empty;
-        Method = new Func<string, CommandResult>((_) => CommandResult.Success);
+        Method = new Func<string, CommandResult>((_) => CommandResult.Success());
     }
 
     public Command Register(Action<string> method, params string[] identifiers)

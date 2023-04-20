@@ -5,13 +5,24 @@ public class CommandResult
     public ResultType ResultType { get; }
     public string Message { get; }
 
-    public static CommandResult Success => new CommandResult(ResultType.Success);
-    public static CommandResult InvalidInput => new CommandResult(ResultType.InvalidInput);
-    public static CommandResult InternalError => new CommandResult(ResultType.InternalError);
-
     public CommandResult(ResultType type, string message = "")
     {
         ResultType = type;
         Message = message;
+    }
+
+    public static CommandResult Success(string message = "")
+    {
+        return new CommandResult(ResultType.Success, message);
+    }
+
+    public static CommandResult InvalidInput(string message = "")
+    {
+        return new CommandResult(ResultType.InvalidInput, message);
+    }
+
+    public static CommandResult Error(string message = "")
+    {
+        return new CommandResult(ResultType.Error, message);
     }
 }
