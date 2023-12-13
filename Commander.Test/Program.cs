@@ -4,7 +4,8 @@ Console.WriteLine("Hello, World!");
 
 Commander commander = new Commander();
 Command sayCommand = commander.Register(HahaYes, "say", "yell");
-sayCommand.Register(HahaYesSub, "kek");
+Command kekCommand = sayCommand.Register(HahaYesSub, "kek");
+kekCommand.Register(HahaYesSub, "lol");
 
 commander.Register(HahaNo, "scream", "yell");
 commander.Register(Add, "add");

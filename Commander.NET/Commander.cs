@@ -60,7 +60,7 @@ public class Commander
     {
         string[] inputParts = input.Split(' ');
 
-        Command? command = commands.FirstOrDefault(command => command.Identifiers.Contains(inputParts[0]));
+        Command? command = commands.Find(command => command.Identifiers.Contains(inputParts[0]));
 
         if (command is null)
         {

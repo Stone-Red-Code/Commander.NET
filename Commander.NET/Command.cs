@@ -4,24 +4,23 @@ namespace Commander_Net;
 
 public class Command
 {
+    internal readonly List<Command> subCommands = new();
     public string[] Identifiers { get; init; }
     public Func<string, CommandResult> Method { get; init; }
     public HelpText HelpText { get; init; }
-
-    internal readonly List<Command> subCommands = new();
-
-    internal Command(Func<string, CommandResult> method, HelpText description, string[] identifiers)
-    {
-        Method = method;
-        HelpText = description;
-        Identifiers = identifiers;
-    }
 
     public Command()
     {
         Identifiers = Array.Empty<string>();
         HelpText = string.Empty;
         Method = new Func<string, CommandResult>((_) => CommandResult.Success());
+    }
+
+    internal Command(Func<string, CommandResult> method, HelpText description, string[] identifiers)
+    {
+        Method = method;
+        HelpText = description;
+        Identifiers = identifiers;
     }
 
     public Command Register(Action<string> method, params string[] identifiers)
@@ -93,7 +92,7 @@ public class Command
     {
         string[] inputParts = input.Split(' ');
 
-        Command? command = subCommands.FirstOrDefault(command => command.Identifiers.Contains(inputParts[0]));
+        Command? command = subCommands.Find(command => command.Identifiers.Contains(inputParts[0]));
 
         if (command is not null)
         {
@@ -110,7 +109,7 @@ public class Command
         }
     }
 
-    internal string GetHelp(string input)
+    internal string GetHelp(string input, int indentation = 2)
     {
         string[] inputParts = input.Split(' ');
 
@@ -118,7 +117,7 @@ public class Command
 
         foreach (Command command in subCommands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
         {
-            _ = helpText.Append($"{Environment.NewLine}    {command.GetHelp(string.Join(' ', inputParts.Skip(1)))}");
+            _ = helpText.Append($"{Environment.NewLine}{new string(' ', indentation)}{command.GetHelp(string.Join(' ', inputParts.Skip(1)), indentation + 2)}");
         }
 
         return helpText.ToString();
