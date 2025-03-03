@@ -1,13 +1,13 @@
 ﻿using System.Text;
 
-namespace Commander_Net;
+namespace Commander;
 
 public class Command
 {
     internal readonly List<Command> subCommands = new();
-    public string[] Identifiers { get; init; }
-    public Func<string, CommandResult> Method { get; init; }
-    public HelpText HelpText { get; init; }
+    public string[] Identifiers { get; set; }
+    public Func<string, CommandResult> Method { get; set; }
+    public HelpText HelpText { get; set; }
 
     public Command()
     {
@@ -55,6 +55,24 @@ public class Command
     {
         subCommands.Add(command);
         return command;
+    }
+
+    public Command WithDescription(string description)
+    {
+        HelpText = description;
+        return this;
+    }
+
+    public Command WithIdentifiers(params string[] identifiers)
+    {
+        Identifiers = identifiers;
+        return this;
+    }
+
+    public Command WithMethod(Func<string, CommandResult> method)
+    {
+        Method = method;
+        return this;
     }
 
     internal List<CommandResult> ExecuteMultible(string input, List<CommandResult>? commandResults = null)
@@ -109,15 +127,31 @@ public class Command
         }
     }
 
-    internal string GetHelp(string input, int indentation = 2)
+    internal string GetHelp(string input, int indentation = 2, int paddingSize = 0, bool includeDescription = true)
     {
         string[] inputParts = input.Split(' ');
 
-        StringBuilder helpText = new StringBuilder($"{string.Join(" | ", Identifiers)} > {HelpText?.Description}");
+        if (paddingSize - indentation < 0)
+        {
+            paddingSize = indentation;
+        }
+
+        StringBuilder helpText = new StringBuilder(string.Join(" | ", Identifiers).PadRight(paddingSize - indentation));
+
+        if (!string.IsNullOrWhiteSpace(HelpText.Description) && includeDescription)
+        {
+            _ = helpText.Append($" > {HelpText.Description}");
+        }
 
         foreach (Command command in subCommands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
         {
-            _ = helpText.Append($"{Environment.NewLine}{new string(' ', indentation)}{command.GetHelp(string.Join(' ', inputParts.Skip(1)), indentation + 2)}");
+            _ = helpText.Append($"{Environment.NewLine}{new string(' ', indentation)}{command.GetHelp(string.Join(' ', inputParts.Skip(1)), indentation + 2, paddingSize, includeDescription)}");
+        }
+
+        // Indentation is 2 when this is called from the Commander class/not a subcommand
+        if (subCommands.Count > 0 && indentation == 2)
+        {
+            _ = helpText.AppendLine();
         }
 
         return helpText.ToString();

@@ -1,18 +1,21 @@
-﻿using Commander_Net;
+﻿using Commander;
 
 Console.WriteLine("Hello, World!");
 
-Commander commander = new Commander();
+Commander.Commander commander = new Commander.Commander();
 Command sayCommand = commander.Register(HahaYes, "say", "yell");
 Command kekCommand = sayCommand.Register(HahaYesSub, "kek");
 kekCommand.Register(HahaYesSub, "lol");
 
-commander.Register(HahaNo, "scream", "yell");
+commander.Register(HahaNo, (HelpText)"AAAAAH", "scream", "yell");
 commander.Register(Add, "add");
 commander.Register((args) => Console.Clear(), "clear");
-commander.Register((input) => commander.PrintHelp(input) ? CommandResult.Success() : CommandResult.InvalidInput(), "help");
+commander.Register()
+    .WithMethod((input) => commander.PrintHelp(input) ? CommandResult.Success() : CommandResult.InvalidInput())
+    .WithDescription("Cool help command")
+    .WithIdentifiers("help", "?");
 
-Command fancyCommand = commander.Register(_ => CommandResult.InvalidInput("Nonono"), "fancy");
+Command fancyCommand = commander.Register(_ => CommandResult.InvalidInput("Nonono"), (HelpText)"Very fancy commands", "fancy");
 fancyCommand.Register(new Command()
 {
     Identifiers = new string[] { "yes", "YES" },
@@ -27,9 +30,16 @@ fancyCommand.Register(new Command()
     Method = (i) => { Console.WriteLine($"Yes, {i} is not very fancy!"); return new CommandResult(ResultType.Success); }
 });
 
+fancyCommand.Register(new Command()
+{
+    Identifiers = new string[] { "no", "NO" },
+    HelpText = "Says that the input is not fancy",
+    Method = (i) => { Console.WriteLine($"Yes, {i} is not very fancy!"); return new CommandResult(ResultType.Success); }
+});
+
 while (true)
 {
-    if (commander.ExecuteMultible(Console.ReadLine()!, out List<CommandResult> commandResults))
+    if (commander.ExecuteMultiple(Console.ReadLine()!, out List<CommandResult> commandResults))
     {
         foreach (CommandResult commandResult in commandResults)
         {

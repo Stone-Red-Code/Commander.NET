@@ -1,4 +1,4 @@
-﻿namespace Commander_Net;
+﻿namespace Commander;
 
 public class HelpText
 {

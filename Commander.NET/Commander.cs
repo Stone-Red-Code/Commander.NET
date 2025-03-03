@@ -1,10 +1,15 @@
 ﻿using System.Text;
 
-namespace Commander_Net;
+namespace Commander;
 
 public class Commander
 {
     private readonly List<Command> commands = new();
+
+    public Command Register()
+    {
+        return Register(new Command());
+    }
 
     public Command Register(Action<string> method, params string[] identifiers)
     {
@@ -40,7 +45,7 @@ public class Commander
         return command;
     }
 
-    public bool ExecuteMultible(string input, out List<CommandResult> commandResults)
+    public bool ExecuteMultiple(string input, out List<CommandResult> commandResults)
     {
         List<CommandResult> internalCommandResults = new List<CommandResult>();
         string[] inputParts = input.Split(' ');
@@ -80,10 +85,21 @@ public class Commander
 
         foreach (Command command in commands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
         {
-            _ = internalHelpText.AppendLine(command.GetHelp(string.Join(' ', inputParts.Skip(1))));
+            _ = internalHelpText.AppendLine(command.GetHelp(string.Join(' ', inputParts.Skip(1)), includeDescription: false));
         }
 
         helpText = internalHelpText.ToString();
+
+        int longestLine = helpText.Split(Environment.NewLine).Max(line => line.Length) + 2;
+
+        _ = internalHelpText.Clear();
+        foreach (Command command in commands.Where(command => command.Identifiers.Contains(inputParts[0]) || string.IsNullOrWhiteSpace(input)))
+        {
+            _ = internalHelpText.AppendLine(command.GetHelp(string.Join(' ', inputParts.Skip(1)), paddingSize: longestLine));
+        }
+
+        helpText = internalHelpText.ToString();
+
         return !string.IsNullOrWhiteSpace(helpText);
     }
 
