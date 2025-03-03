@@ -1,15 +1,9 @@
 ﻿namespace Commander;
 
-public class CommandResult
+public class CommandResult(ResultType type, string message = "")
 {
-    public ResultType ResultType { get; }
-    public string Message { get; }
-
-    public CommandResult(ResultType type, string message = "")
-    {
-        ResultType = type;
-        Message = message;
-    }
+    public ResultType ResultType { get; } = type;
+    public string Message { get; } = message;
 
     public static CommandResult Success(string message = "")
     {

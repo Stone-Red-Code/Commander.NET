@@ -4,14 +4,14 @@ namespace Commander;
 
 public class Command
 {
-    internal readonly List<Command> subCommands = new();
+    internal readonly List<Command> subCommands = [];
     public string[] Identifiers { get; set; }
     public Func<string, CommandResult> Method { get; set; }
     public HelpText HelpText { get; set; }
 
     public Command()
     {
-        Identifiers = Array.Empty<string>();
+        Identifiers = [];
         HelpText = string.Empty;
         Method = new Func<string, CommandResult>((_) => CommandResult.Success());
     }
@@ -80,7 +80,7 @@ public class Command
         string[] inputParts = input.Split(' ');
         bool found = false;
 
-        commandResults ??= new List<CommandResult>();
+        commandResults ??= [];
 
         foreach (Command? command in subCommands.Where(command => command.Identifiers.Contains(inputParts[0])))
         {
